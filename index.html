@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<head>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    .video{
+      position: relative;
+      width: 40vw;
+      /* height: ; */
+    }
+    .line{
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: aqua;
+      height: 1px;
+    }
+    .column{
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: aqua;
+      height: 100%;
+      width: 1px;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <div class="video">
+      <video style="width: inherit; height: auto;" width="1280" height="720" controls oncanplay="canplay()"></video>
+      <div class="line"></div>
+      <div class="column"></div>
+    </div>
+    <canvas style="width: 40vw;"></canvas>
+    <button style="flex: 1;" onclick="draw()">click</button>
+    
+    <img style='width: 400px'/>
+  </section>
+  <script>
+    navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: {
+        width: 1280, 
+        height: 720
+      }
+    }).then( e => {
+      console.log(e)
+      const video = document.querySelector('video')
+      video.srcObject = e
+      video.onloadedmetadata = (o) => {
+        console.log(o)
+        video.play()
+      }
+    })
+
+
+    function canplay(){
+      console.log(event)
+    }
+    
+    const draw = () => {
+      // getImgX()
+      getImgY()
+    }
+    function getImgY () {
+      const video = document.querySelector('video')
+      const canvas = document.querySelector('canvas')
+      const img = document.querySelectorAll('img')
+      const line = document.querySelector('.line')
+      const ctx = canvas.getContext('2d')
+      canvas.width = 1280
+      canvas.height = 720
+      const sl = 40
+      let num = 0
+      let maxNum = 100
+      let inter = setInterval(() => {
+        line.style.top = `${num}%`
+        const [sx, sy, sw, sh, dx, dy, dw, dh] = [
+          0, 
+          canvas.height / maxNum * (num), 
+          canvas.width, 
+          canvas.height / maxNum,
+          0,
+          canvas.height / maxNum * num, 
+          canvas.width, 
+          canvas.height / maxNum
+        ]
+        ctx.drawImage(video, sx, sy, sw, sh, dx, dy, dw, dh)
+        console.log(`
+        图片x: ${sx},
+        图片y: ${sy},
+        截取宽度: ${sw},
+        截取高度: ${sh},
+        canvs-x: ${dx},
+        canvas-y: ${dy},
+        cancas-w: ${dw},
+        canvas-h: ${dh},
+        video.height`)
+        num += 1
+        if(num == maxNum){
+          num = 0
+          clearInterval(inter)
+        }
+      }, sl);
+      
+    }
+    function getImgX () {
+      const video = document.querySelector('video')
+      const canvas = document.querySelector('canvas')
+      const img = document.querySelectorAll('img')
+      const line = document.querySelector('.column')
+      const ctx = canvas.getContext('2d')
+      canvas.width = 1280
+      canvas.height = 720
+      const sl = 40
+      let num = 0
+      let maxNum = 100
+      let inter = setInterval(() => {
+        line.style.left = `${num}%`
+        const [sx, sy, sw, sh, dx, dy, dw, dh] = [
+          canvas.width / maxNum * (num), 
+          0, 
+          canvas.width / maxNum, 
+          canvas.height,
+          canvas.width / maxNum * num,
+          0, 
+          canvas.width/ maxNum, 
+          canvas.height 
+        ]
+        ctx.drawImage(video, sx, sy, sw, sh, dx, dy, dw, dh)
+        console.log(`
+        图片x: ${sx},
+        图片y: ${sy},
+        截取宽度: ${sw},
+        截取高度: ${sh},
+        canvs-x: ${dx},
+        canvas-y: ${dy},
+        cancas-w: ${dw},
+        canvas-h: ${dh},
+        video.height`)
+        num += 1
+        if(num == maxNum){
+          num = 0
+          clearInterval(inter)
+        }
+      }, sl);
+      
+    }
+    
+    const toBlob = (canvas) => {
+      return new Promise((reslove, reject) => {
+        canvas.toBlob( async (e) => {
+          reslove(window.URL.createObjectURL(e))
+        })
+      })
+    }
+
+    const setImgSrc = (img, src) => {
+      return new Promise((reslove, reject) => {
+        img.src = src
+        img.onload = () => {
+          reslove('ok')
+        }
+        img.onerror = (err) => {
+          reject(err)
+        }
+      })
+    }
+  </script>
+</body>
